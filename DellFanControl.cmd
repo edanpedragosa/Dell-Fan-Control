@@ -7,7 +7,7 @@ rem Use at your own risks.
 setlocal EnableDelayedExpansion
 cls
 rem set Server IP address, Username and Password for the IPMI connection
-set serverip=172.27.144.24
+set serverip=192.168.144.27
 set username=thermal
 set password=control
 
