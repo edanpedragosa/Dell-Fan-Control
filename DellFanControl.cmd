@@ -7,15 +7,17 @@ rem Use at your own risks.
 setlocal EnableDelayedExpansion
 cls
 rem set Server IP address, Username and Password for the IPMI connection
-set serverip=192.168.144.27
+set serverip=172.16.77.84
 set username=thermal
 set password=control
 
 rem Parameters interval in seconds - offset by percentage
 set checkInterval=30
-set offsetSpeedBy=40
+set offsetSpeedBy=52
 set prevTemp=0
 set peakTemp=0
+
+set IPMI=%~dp0tools\ipmitool.exe
 
 :monitor_temp
 set Cnt=0
@@ -24,7 +26,7 @@ set currentTemp[4]=0
 
 
 rem Setting Manual Fan Speed Control
-ipmitool -I lanplus -H %serverip% -U %username% -P %password% raw 0x30 0x30 0x01 0x00
+%IPMI% -I lanplus -H %serverip% -U %username% -P %password% raw 0x30 0x30 0x01 0x00
 
 
 cls
@@ -34,11 +36,11 @@ echo ------------------------------------------------------------
 
 rem Reading Temperature Sensors and Creating tmp.rdg file
 rem Saves current temperatures to tmp.rdg file
-ipmitool -I lanplus -H %serverip% -U %username% -P %password% sdr type temperature > tmp.rdg
+%IPMI% -I lanplus -H %serverip% -U %username% -P %password% sdr type temperature > tmp.rdg
 
 echo = Reading Fan Speed Sensors and Other PSU and Temp Sensors =
 echo ------------------------------------------------------------
-ipmitool -I lanplus -H %serverip% -U %username% -P %password% sdr list full
+%IPMI% -I lanplus -H %serverip% -U %username% -P %password% sdr list full
 
 rem Reads current temperature from tmp.rdg and Get the number of lines in the tmp.rdg file
 for /F "tokens=3 delims= " %%i IN ('find /v /c "temp" tmp.rdg') DO set /a lines=%%i
@@ -84,7 +86,7 @@ set hexFanSpeed=0x%HexValue%
 echo.
 echo Peak CPU Temperature is %peakTemp% degrees celcius
 echo     Setting Fans Speed at %fanSpeed%%%
-ipmitool -I lanplus -H %serverip% -U %username% -P %password% raw 0x30 0x30 0x02 0xff %hexFanSpeed%
+%IPMI% -I lanplus -H %serverip% -U %username% -P %password% raw 0x30 0x30 0x02 0xff %hexFanSpeed%
 set /A prevTemp=%peakTemp%
 
 timeout /t %checkInterval%
